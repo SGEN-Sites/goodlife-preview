@@ -108,33 +108,38 @@
     for (var i = 0, more = true; more; i++) { more = false; for (var j = 0; j < ORDER.length; j++) { var a = b[ORDER[j]]; if (i < a.length) { out.push(a[i]); more = true; } } }
     return out.concat(rest);
   }
-  /* identical markup to kit pcard() + the repairs shop.mjs card() makes (weekly badge, woven brand label + crop variant on
-     photo-less cards, no unknown strain). $0 items show "Price on the live menu" and no Add button, exactly like pcard(). */
+  /* the kit pcard() v2 markup exactly (photo, brand, name, meta, price; a round + Add button only when the price is above
+     $0; no tax line; at most one tag) + the repairs shop.mjs card() makes: the weekly-special tag when there is no deal tag,
+     the brand in big type on photo-less cards (crop variant: varyStills), no strain the menu doesn't list. */
   function cardHTML(it, storeKey, W) {
     var url = GL.u(it.url), img = GL.u(it.im);
     var tags = [];
     it.d.forEach(function (d) { tags.push('<span class="tag tag--amber">' + esc(d) + '</span>'); });
     if (it.off) tags.push('<span class="tag tag--amber">' + it.off + '% off</span>');
-    tags = uniq(tags).slice(0, 2);
-    var have = tags.length;
-    uniq(it.wk.map(function (d) { return W[d]; }).filter(Boolean)).forEach(function (w) { if (have < 2 && it.d.indexOf(w) < 0) { tags.push('<span class="tag tag--wk">' + esc(w) + '</span>'); have++; } });
+    tags = uniq(tags).slice(0, 1);
+    if (!tags.length) {
+      var wk = uniq(it.wk.map(function (d) { return W[d]; }).filter(Boolean)).filter(function (w) { return it.d.indexOf(w) < 0; });
+      if (wk.length) tags.push('<span class="tag tag--wk">' + esc(wk[0]) + '</span>');
+    }
     var pot = it.thc != null ? 'THC ' + it.thc + '%' : (it.mg != null ? 'THC ' + it.mg + 'mg' : '');
     var strain = it.nostrain ? '' : '<span class="strain strain--' + esc(it.strain) + '">' + esc(STRAIN_LABEL[it.strain] || it.strain) + '</span>';
     var brand = it.brand || 'Good Life';
-    var media = 'pcard__media' + (it.dk ? ' pcard__media--dark' : '') + (it.fl ? ' pcard__media--fill' : ''); // crop variant: varyStills()
-    var buy;
+    var media = 'pcard__media' + (it.dk ? ' pcard__media--dark' : '') + (it.fl ? ' pcard__media--fill' : '');
+    var add = '', price = '<p class="price"><small>Price on the live menu</small></p>';
     if (it.price > 0) {
       var item = { id: it.id, store: storeKey, name: it.name, brand: it.brand, price: it.price, priceTax: it.pt, img: img, dark: it.dk, size: it.size || '', url: url };
-      buy = '<span class="price"><b>' + money(it.price) + '</b><small>' + money(it.pt) + ' with tax</small></span><button type="button" class="add-btn" data-add="' + esc(JSON.stringify(item)) + '" aria-label="Add ' + esc(it.name) + ' to your bag">' + PLUS + 'Add</button>';
-    } else {
-      buy = '<span class="price"><small>Price on the live menu</small></span>';
+      add = '<button type="button" class="add-btn pcard__add" data-add="' + esc(JSON.stringify(item)) + '" aria-label="Add ' + esc(it.name) + ' to your bag">' + PLUS + '</button>';
+      price = '<p class="price"><b>' + money(it.price) + '</b></p>';
     }
     return '<article class="pcard" data-pid="' + esc(it.id) + '">' +
+      '<div class="pcard__frame">' +
       '<a class="' + media + '" style="background:' + esc(it.bg) + '" href="' + esc(url) + '" tabindex="-1" aria-hidden="true"><img src="' + esc(img) + '" alt="" width="320" height="320" loading="lazy" decoding="async"><span class="pcard__badges">' + tags.join('') + '</span>' + (it.dk ? '<span class="pcard__ph">' + esc(brand) + '</span>' : '') + '</a>' +
+      add +
+      '</div>' +
       '<div class="pcard__body"><p class="pcard__brand">' + esc(brand) + '</p>' +
       '<h3 class="pcard__name"><a href="' + esc(url) + '">' + esc(it.name) + '</a></h3>' +
-      '<p class="pcard__meta">' + strain + (it.size ? '<span>' + esc(it.size) + '</span>' : '') + (pot ? '<b>' + esc(pot) + '</b>' : '') + '</p>' +
-      '<div class="pcard__buy">' + buy + '</div>' +
+      '<p class="pcard__meta">' + strain + (pot ? '<span>' + esc(pot) + '</span>' : '') + (it.size ? '<span>' + esc(it.size) + '</span>' : '') + '</p>' +
+      price +
       '</div></article>';
   }
   function sizeKey(z) {
@@ -575,28 +580,70 @@
   });
   if ($('[data-shop-store]')) syncSwitch();
 
-  /* ---------- Rochester weekly board: light today's column; on phones scroll it into view (no animation) ---------- */
-  $$('[data-board]').forEach(function (fr) {
-    var idx = (rocDow + 6) % 7; // board columns run Monday → Sunday
-    var hl = $('[data-board-today]', fr), sc = $('[data-board-scroll]', fr);
-    if (hl) { hl.style.left = (idx / 7 * 100).toFixed(3) + '%'; hl.hidden = false; }
-    function center() { if (sc && sc.scrollWidth > sc.clientWidth + 4) { var col = sc.scrollWidth / 7; sc.scrollLeft = Math.max(0, idx * col - (sc.clientWidth - col) / 2); } }
-    center();
-    window.addEventListener('load', center);
+  /* ---------- the week: one big day at a time (Rochester's weekly deals) ----------
+     Today (New York) is marked and shown first. The week plays on its own: each day's progress bar is a CSS animation
+     and its end shows the next day, so hover, focus, the pause button, Pause motion and being off screen all pause it
+     simply by pausing that animation. Reduced motion: no auto-play (tabs, arrows and swipes still work). */
+  $$('[data-week]').forEach(function (wk) {
+    var tabs = $$('[data-week-tab]', wk), panels = $$('.wday', wk), stage = $('[data-week-stage]', wk), pause = $('[data-week-pause]', wk);
+    if (!tabs.length) return;
+    var cur = -1;
+    function idxOf(dow) { for (var i = 0; i < tabs.length; i++) if (+tabs[i].getAttribute('data-week-tab') === dow) return i; return 0; }
+    function show(i, focus) {
+      i = (i + tabs.length) % tabs.length;
+      if (i === cur) return;
+      cur = i;
+      tabs.forEach(function (t, j) { var on = j === i; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
+      panels.forEach(function (p, j) { p.classList.toggle('is-on', j === i); });
+      if (focus) tabs[i].focus();
+    }
+    tabs.forEach(function (t) { t.classList.toggle('is-today', +t.getAttribute('data-week-tab') === rocDow); });
+    panels.forEach(function (p) { p.classList.toggle('is-today', +p.getAttribute('data-day') === rocDow); });
+    panels.forEach(function (p) { p.classList.remove('is-on'); });
+    show(idxOf(rocDow));
+    tabs.forEach(function (t, j) {
+      t.addEventListener('click', function () { show(j); });
+      t.addEventListener('keydown', function (e) {
+        var k = e.key, n = k === 'ArrowRight' ? cur + 1 : k === 'ArrowLeft' ? cur - 1 : k === 'Home' ? 0 : k === 'End' ? tabs.length - 1 : null;
+        if (n == null) return; e.preventDefault(); show(n, true);
+      });
+      $('.week__bar i', t).addEventListener('animationend', function () { if (j === cur) show(cur + 1); });
+    });
+    if (!reduce) wk.classList.add('is-auto');
+    // hover / keyboard focus hold the day; off screen holds it too
+    wk.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') wk.classList.add('is-hold'); });
+    wk.addEventListener('pointerleave', function () { wk.classList.remove('is-hold'); });
+    wk.addEventListener('focusin', function () { wk.classList.add('is-hold'); });
+    wk.addEventListener('focusout', function (e) { if (!wk.contains(e.relatedTarget)) wk.classList.remove('is-hold'); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { wk.classList.toggle('is-away', !es[0].isIntersecting); }, { threshold: 0.25 }).observe(wk);
+    if (pause) {
+      var syncP = function () { var p = wk.classList.contains('is-paused') || root.classList.contains('motion-off'); pause.setAttribute('aria-pressed', String(p)); pause.setAttribute('aria-label', (p ? 'Play' : 'Pause') + ' the weekly deals'); pause.innerHTML = p ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'; };
+      pause.addEventListener('click', function () { if (root.classList.contains('motion-off')) { wk.classList.remove('is-paused'); var m = $('[data-motion-toggle]'); if (m) m.click(); } else wk.classList.toggle('is-paused'); syncP(); });
+      doc.addEventListener('gl:motion', syncP); syncP();
+      if (reduce) pause.hidden = true;
+    }
+    // swipe on touch screens: left = next day, right = previous day (vertical scrolling stays native: touch-action pan-y)
+    if (stage) {
+      var sx = 0, sy = 0, sw = false;
+      stage.addEventListener('pointerdown', function (e) { if (e.pointerType === 'mouse') return; sx = e.clientX; sy = e.clientY; sw = true; });
+      stage.addEventListener('pointerup', function (e) { if (!sw) return; sw = false; var dx = e.clientX - sx, dy = e.clientY - sy; if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) show(cur + (dx < 0 ? 1 : -1)); });
+      stage.addEventListener('pointercancel', function () { sw = false; });
+    }
   });
 
-  /* ---------- deals: today's card + today's deals first in the "on deal" rail ---------- */
-  var days = $$('.day[data-day]');
-  if (days.length) {
-    var today = null;
-    days.forEach(function (d) { var on = +d.getAttribute('data-day') === rocDow; d.classList.toggle('is-today', on); if (on) today = d; });
-    var tc = $('[data-today-card]');
-    if (today && tc) {
-      $('[data-today-name]', tc).textContent = $('.day__name', today).textContent;
-      var sub = $('.day__sub', today), ts = $('[data-today-sub]', tc);
+  /* ---------- deals hero: today's deal (the visitor's day in New York) + its still ---------- */
+  var tday = $('[data-today]');
+  if (tday) {
+    var tp = $('.wday[data-day="' + rocDow + '"]');
+    if (tp) {
+      $('[data-today-name]', tday).textContent = $('.wday__name', tp).textContent;
+      $('[data-today-dow]', tday).textContent = $('.wday__dow', tp).textContent;
+      var sub = $('.wday__sub', tp), ts = $('[data-today-sub]', tday);
       ts.hidden = !sub; ts.textContent = sub ? sub.textContent : '';
-      $('[data-today-lines]', tc).innerHTML = $$('.day__lines li', today).map(function (li) { return '<span>' + esc(li.textContent) + '</span>'; }).join('');
+      $('[data-today-lines]', tday).innerHTML = $$('.wday__lines li', tp).map(function (li) { return '<li>' + esc(li.textContent) + '</li>'; }).join('');
     }
+    var layers = $$('[data-hero-day]');
+    if (layers.some(function (l) { return +l.getAttribute('data-hero-day') === rocDow; })) layers.forEach(function (l) { l.hidden = +l.getAttribute('data-hero-day') !== rocDow; });
   }
   var railT = $('[data-deal-rail]');
   if (railT) {

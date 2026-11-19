@@ -1,14 +1,16 @@
-/* Good Life preview — MERCH SHOP area script (owner: merch area). Builds on window.GL from site.js.
-   · store filter on the hub + category grids (every option shows ≥1 style): follows the store the shopper chose (header
-     picker, "Pick your store", a remembered choice), keeps chapter counts + store lists honest, and a filtered hub drops
-     its editorial interludes and any section left empty
+/* Good Life preview — MERCH SHOP area script v2 (owner: merch area). Builds on window.GL from site.js.
+   · store filter = a native <select> (no pills) + the big store counts in the "where it's stocked" band; every option shows
+     ≥1 style; follows the store the shopper chose (header picker, "Pick your store", a remembered choice); keeps chapter
+     counts + store lists honest; a filtered hub drops its editorial beats and any chapter left empty
+   · photo walls (heroes, "keep shopping"): the lit panel widens and moves on by itself; the pointer / focus takes over.
+     Stops under reduced motion and the site's Pause motion
+   · cards: details show on hover / focus; on touch the info button opens them (one at a time)
    · a bag add that switches the store says so (toast + announcement) and leaves the grid where it is
    · lone-card balancing: the first visible card goes wide when the visible count would leave one card alone
-   · Rochester weekly-board merch days: "Today" lights up on the matching day (America/New_York)
+   · Rochester weekly-board merch days: "today" lights up on the matching day (America/New_York)
    · style page: colour + size buttons built from real variants only (a missing size moves to the nearest stocked one);
      the chosen variant drives the Add-to-bag item, price, tax line, the selected line and the gallery photo; a note
-     explains when the item is stocked somewhere other than the shopper's store or bag
-   No JS-driven motion lives here; the one smooth scroll is on request and is instant under reduced motion / Pause motion. */
+     explains when the item is stocked somewhere other than the shopper's store or bag */
 (function () {
   'use strict';
   var doc = document, root = doc.documentElement;
@@ -17,12 +19,40 @@
   var money = function (n) { return (window.GL && GL.money) ? GL.money(n) : '$' + Number(n).toFixed(2); };
   function cityOf(key) { return (window.GL && GL.byKey && GL.byKey[key]) ? GL.byKey[key].city : key; }
   function aCity(city) { return (/^[aeiou]/i.test(city) ? 'an ' : 'a ') + city; }
-  function calm() { return root.classList.contains('motion-off') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function calm() { return reduce || root.classList.contains('motion-off'); }
   var renderSwitch = function () {};   // style page only (set below)
+
+  /* ---------- photo walls: one lit panel at a time ---------- */
+  $$('[data-mwall]').forEach(function (wall) {
+    var ps = $$('[data-mwall-p]', wall); if (ps.length < 2) return;
+    var k = 0, hold = false, seen = false, timer = 0;
+    ps.forEach(function (p, i) { if (p.classList.contains('is-on')) k = i; });
+    function lit(i) { k = (i + ps.length) % ps.length; ps.forEach(function (p, j) { p.classList.toggle('is-on', j === k); }); }
+    function tick() { clearTimeout(timer); timer = setTimeout(function () { if (!hold && seen && !calm() && !doc.hidden) lit(k + 1); tick(); }, 3400); }
+    ps.forEach(function (p, i) {
+      p.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse' || e.pointerType === 'pen') { hold = true; lit(i); } });
+      p.addEventListener('focus', function () { hold = true; lit(i); });
+      p.addEventListener('blur', function () { hold = false; });
+    });
+    wall.addEventListener('pointerleave', function () { hold = false; });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { seen = es[0].isIntersecting; }, { threshold: 0.25 }).observe(wall);
+    else seen = true;
+    tick();
+  });
+
+  /* ---------- cards: details on tap (touch); hover / focus is pure CSS ---------- */
+  function closeCards(except) { $$('[data-mcard].is-open').forEach(function (c) { if (c === except) return; c.classList.remove('is-open'); var t = $('[data-mcard-tip]', c); if (t) t.setAttribute('aria-expanded', 'false'); }); }
+  doc.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-mcard-tip]');
+    if (t) { var c = t.closest('[data-mcard]'), open = !c.classList.contains('is-open'); closeCards(c); c.classList.toggle('is-open', open); t.setAttribute('aria-expanded', String(open)); return; }
+    if (!e.target.closest('[data-mcard]')) closeCards(null);
+  });
+  doc.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCards(null); });
 
   /* ---------- grids: lone-card balancing ---------- */
   function balance(grid) {
-    if (grid.classList.contains('mgrid--four')) return;
+    if (grid.classList.contains('mgrid--four') || grid.classList.contains('mgrid--split')) return;
     var all = $$('.mcard', grid);
     all.forEach(function (c) { c.classList.remove('mcard--w4', 'mcard--w3', 'mcard--w2'); });
     var vis = all.filter(function (c) { return !c.hidden; });
@@ -33,34 +63,15 @@
   }
 
   /* ---------- store filter ---------- */
-  var group = $('[data-merch-filter]');
+  var sel = $('[data-merch-filter]');
   var status = $('[data-merch-status]');
   var chaps = $$('[data-chap]');
   var conts = $$('[data-mshop-cont]');           // hub sections that hold only chapters
-  var interludes = $$('#lookbook, #pin');        // hub editorial beats: results stay together when filtered
+  var interludes = $$('[data-interlude]');       // hub editorial beats: results stay together when filtered
   var pinAll = $('[data-pin-all]');
-  var shopSec = $('#shop'), panel = $('#stores'), board = panel ? $('.mboard', panel) : null;
-  var panelHome = panel ? panel.parentNode : null, panelNext = panel ? panel.nextSibling : null;
-  function hasChip(key) { return !!(group && $('[data-merch-store="' + key + '"]', group)); }
-  /* the store note always follows products: if the first chapter is filtered out it moves below the last chapter still
-     showing. Rochester's board only shows when Rochester is in view. */
-  function placePanel(key) {
-    if (!panel) return;
-    if (board) { var roc = key === 'all' || key === 'rochester'; board.hidden = !roc; panel.classList.toggle('mstores--solo', !roc); }
-    if (shopSec) shopSec.classList.toggle('is-filtered', key !== 'all');
-    if (!conts.length) return;
-    var firstOn = !chaps[0].hidden, target = null;
-    if (shopSec) shopSec.classList.toggle('is-filter-only', !firstOn);
-    if (!firstOn) conts.forEach(function (s) { if (!s.hidden) target = s; });
-    if (target) $('.shell', target).appendChild(panel); else panelHome.insertBefore(panel, panelNext);
-  }
-  /* on phones the chips scroll sideways: keep the active one in view (the row moves, never the page) */
-  function showChip(btn) {
-    var row = btn.parentNode; if (row.scrollWidth <= row.clientWidth) return;
-    row.scrollLeft += btn.getBoundingClientRect().left - row.getBoundingClientRect().left - 16;
-  }
+  function hasKey(key) { return key === 'all' || !!(sel && $('option[value="' + key + '"]', sel)); }
   function applyFilter(key) {
-    if (!hasChip(key)) key = 'all';
+    if (!hasKey(key)) key = 'all';
     var total = 0;
     chaps.forEach(function (ch) {
       var n = 0;
@@ -73,35 +84,39 @@
       var cnt = $('[data-chap-count]', ch); if (cnt) cnt.textContent = n + (n === 1 ? ' style' : ' styles');
       var st = $('[data-chap-stores]', ch); if (st) st.textContent = key === 'all' ? st.getAttribute('data-all') : cityOf(key);
       $$('[data-mgrid]', ch).forEach(balance);
+      var rail = $('[data-mrail]', ch); if (rail) rail.scrollLeft = 0;
       total += n;
     });
     conts.forEach(function (sec) { sec.hidden = !$$('[data-chap]', sec).some(function (ch) { return !ch.hidden; }); });
     interludes.forEach(function (el) { el.hidden = key !== 'all'; });
-    placePanel(key);
-    if (pinAll) pinAll.textContent = 'All ' + total + ' styles';
-    if (group) $$('[data-merch-store]', group).forEach(function (b) { var on = b.getAttribute('data-merch-store') === key; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('is-active', on); if (on) showChip(b); });
+    $$('[data-roc-only]').forEach(function (el) { el.hidden = !(key === 'all' || key === 'rochester'); });
+    if (pinAll) pinAll.firstChild.textContent = 'All ' + total + ' styles ';
+    if (sel) sel.value = key;
+    $$('.mstores__btn[data-merch-store]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-merch-store') === key)); });
     var empty = $('[data-merch-empty]'); if (empty) empty.hidden = total > 0;
     if (status) status.textContent = key === 'all' ? 'Showing all ' + total + ' styles.' : 'Showing ' + total + (total === 1 ? ' style' : ' styles') + ' stocked at Good Life ' + cityOf(key) + '.';
     return total;
   }
   /* the shopper's store drives the filter; a store with nothing here falls back to everything, and says so */
   function followStore(key) {
-    if (!group) return;
-    if (hasChip(key)) { applyFilter(key); return; }
+    if (!sel) return;
+    if (hasKey(key)) { applyFilter(key); return; }
     var total = applyFilter('all');
     if (status) status.textContent = 'None of these are stocked at Good Life ' + cityOf(key) + ' — showing all ' + total + ' styles.';
   }
-  if (group) {
+  if (sel) {
+    sel.addEventListener('change', function () { applyFilter(sel.value); });
     doc.addEventListener('click', function (e) {
       var b = e.target.closest('[data-merch-store]'); if (!b) return;
       applyFilter(b.getAttribute('data-merch-store'));
-      if (!group.contains(b)) { var t = $('#filter') || group; t.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'start' }); }
+      var t = $('#filter'); if (t) t.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'start' });
     });
   }
   $$('[data-mgrid]').forEach(balance);
+  $$('.mstores__btn[data-merch-store]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
   // a first-time visitor sees everything; once a store has been chosen (it is remembered), the filter starts there
   var chosen = (window.GL && GL.LS) ? GL.LS.get('glc-store') : null;
-  if (group && chosen && window.GL && GL.byKey && GL.byKey[chosen]) followStore(chosen);
+  if (sel && chosen && window.GL && GL.byKey && GL.byKey[chosen]) followStore(chosen);
 
   /* ---------- store changes: from the picker the grid follows; from a bag add the grid stays and we say what happened ---------- */
   var adding = null;
@@ -131,9 +146,6 @@
     try { var w = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date()); return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(w); } catch (e) { return new Date().getDay(); }
   }
   var dow = nyDow();
-  $$('.mboard__days li[data-dow]').forEach(function (li) {
-    if (+li.getAttribute('data-dow') === dow) { li.classList.add('is-today'); var t = $('.mboard__today', li); if (t) t.hidden = false; }
-  });
   $$('[data-merch-deal]').forEach(function (el) {
     var days = (el.getAttribute('data-merch-deal') || '').split(',').map(Number);
     if (days.indexOf(dow) >= 0) el.classList.add('is-today');
@@ -146,7 +158,7 @@
   var addBtn = $('[data-madd]');
   var priceEl = $('[data-mprice]'), taxEl = $('[data-mprice-tax]'), selEl = $('[data-msel]'), switchEl = $('[data-mswitch]');
   var colorLab = $('[data-mopt-color]'), sizeLab = $('[data-mopt-size]');
-  var main = $('.mgal__img'), nEl = $('[data-mgal-n]');
+  var main = $('.mgal__img');
   var c0 = $('.mswatch.is-on'), s0 = $('.msize.is-on');
   var state = { color: c0 ? c0.getAttribute('data-color') : null, size: s0 ? s0.getAttribute('data-size') : null };
   var ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL'];
@@ -174,7 +186,6 @@
     }
     if (box) box.style.background = p.bg;
     main.alt = D.name + (p.colors && p.colors.length ? ' in ' + p.colors.join(' / ') : '');
-    if (nEl) nEl.textContent = String(i + 1);
     $$('[data-mgal-i]').forEach(function (b) { var on = +b.getAttribute('data-mgal-i') === i; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
   }
 

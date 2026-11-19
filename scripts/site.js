@@ -375,12 +375,92 @@
     if (btn) btn.addEventListener('click', function () { if (v.paused) v.play(); else v.pause(); });
   });
 
+  /* ================= owner round 2: shared motion + interaction (all respect reduced motion and Pause motion) ================= */
+  var still = function () { return reduce || root.classList.contains('motion-off'); };
+  // headings come in word by word (text nodes split; the neon script word travels as one piece)
+  $$('[data-split]').forEach(function (h) {
+    if (h._split) return; h._split = 1; var i = 0;
+    Array.prototype.slice.call(h.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = doc.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(doc.createTextNode(part)); return; }
+          var s = doc.createElement('span'); s.className = 'w'; s.style.setProperty('--i', i++); s.textContent = part; frag.appendChild(s);
+        });
+        h.replaceChild(frag, n);
+      } else if (n.nodeType === 1 && n.tagName !== 'BR') {
+        var wrap = doc.createElement('span'); wrap.className = 'w'; wrap.style.setProperty('--i', i++); h.replaceChild(wrap, n); wrap.appendChild(n);
+      }
+    });
+  });
+  if ('IntersectionObserver' in window && !reduce) {
+    var ioS = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); ioS.unobserve(e.target); } }); }, { threshold: 0.2 });
+    $$('[data-split]').forEach(function (h) { ioS.observe(h); });
+  } else $$('[data-split]').forEach(function (h) { h.classList.add('is-in'); });
+  // scroll-scrubbed images: --p runs 0 -> 1 while the element crosses the viewport (CSS turns it into a slow zoom / drift)
+  var scrub = $$('[data-scrub]');
+  if (scrub.length && !reduce) {
+    var sRaf = 0;
+    var sRun = function () { sRaf = 0; if (still()) return; var vh = window.innerHeight; scrub.forEach(function (el) { var r = el.getBoundingClientRect(); if (r.bottom < -50 || r.top > vh + 50) return; el.style.setProperty('--p', Math.max(0, Math.min(1, (vh - r.top) / (vh + r.height))).toFixed(3)); }); };
+    window.addEventListener('scroll', function () { if (!sRaf) sRaf = requestAnimationFrame(sRun); }, { passive: true }); sRun();
+  }
+  // drag to scroll any horizontal rail with a mouse (touch already scrolls natively); a drag never fires the click under it
+  $$('[data-drag]').forEach(function (el) {
+    var down = false, x0 = 0, s0 = 0, moved = false;
+    el.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' || e.button !== 0) return; down = true; moved = false; x0 = e.clientX; s0 = el.scrollLeft; });
+    window.addEventListener('pointermove', function (e) { if (!down) return; var dx = e.clientX - x0; if (Math.abs(dx) > 6) { moved = true; el.classList.add('is-dragging'); } if (moved) el.scrollLeft = s0 - dx; });
+    window.addEventListener('pointerup', function () { if (!down) return; down = false; setTimeout(function () { el.classList.remove('is-dragging'); }, 0); });
+    el.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+  });
+  // numbers count up once when they come into view (the final text is the server-rendered value)
+  if ('IntersectionObserver' in window && !reduce) {
+    var ioC = new IntersectionObserver(function (es) { es.forEach(function (e) {
+      if (!e.isIntersecting) return; ioC.unobserve(e.target); var el = e.target, fin = el.textContent, m = fin.match(/\d[\d,]*/); if (!m || still()) return;
+      var to = parseInt(m[0].replace(/,/g, ''), 10), t0 = performance.now();
+      (function step(t) { var k = Math.min(1, (t - t0) / 1100), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = fin.replace(m[0], v.toLocaleString()); if (k < 1) requestAnimationFrame(step); else el.textContent = fin; })(t0);
+    }); }, { threshold: 0.6 });
+    $$('[data-count]').forEach(function (el) { ioC.observe(el); });
+  }
+  // neon sign wall: one sign lights at a time; click/tap shows the next; pausable
+  $$('[data-signs]').forEach(function (w) {
+    var items = $$('[data-sign-item]', w), bars = $$('.signs__count i', w), btn = $('[data-signs-toggle]', w), k = 0, timer = 0;
+    if (items.length < 2) return;
+    function show(n) {
+      items[k].classList.remove('is-on'); items[k].classList.add('is-off'); if (bars[k]) bars[k].classList.remove('is-on');
+      k = (n + items.length) % items.length;
+      var it = items[k]; it.classList.remove('is-off'); void it.offsetWidth; it.classList.add('is-on'); if (bars[k]) bars[k].classList.add('is-on');
+    }
+    function paused() { return w.classList.contains('is-paused') || still(); }
+    function tick() { clearTimeout(timer); timer = setTimeout(function () { if (!paused() && !doc.hidden) show(k + 1); tick(); }, 3600); }
+    function sync() { var p = w.classList.contains('is-paused'); if (btn) { btn.setAttribute('aria-pressed', String(p)); btn.setAttribute('aria-label', (p ? 'Play' : 'Pause') + ' the neon sign'); btn.innerHTML = p ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>'; } }
+    if (reduce) w.classList.add('is-paused');
+    var stage = $('[data-sign-next]', w); if (stage) stage.addEventListener('click', function () { show(k + 1); tick(); });
+    if (btn) btn.addEventListener('click', function () { w.classList.toggle('is-paused'); sync(); });
+    sync(); tick();
+  });
+  // store tiles: details show on hover / focus; on touch the + toggles them (one open at a time)
+  function measureTiles() { $$('[data-stile]').forEach(function (c) { var m = $('.stile__more', c); if (m) c.style.setProperty('--more-h', m.offsetHeight + 'px'); }); }
+  measureTiles(); window.addEventListener('resize', measureTiles);
+  doc.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-stile-toggle]'); if (!t) return;
+    var c = t.closest('[data-stile]'), open = !c.classList.contains('is-open');
+    $$('[data-stile].is-open').forEach(function (x) { x.classList.remove('is-open'); var b = $('[data-stile-toggle]', x); if (b) b.setAttribute('aria-expanded', 'false'); });
+    if (open) { c.classList.add('is-open'); t.setAttribute('aria-expanded', 'true'); measureTiles(); }
+  });
+  // "make this my store" buttons anywhere on a page (dialogs handle their own)
+  doc.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-store-pick]'); if (!b || b.closest('[data-age], [data-store-dlg]')) return;
+    var k = b.getAttribute('data-store-pick'); if (!byKey[k]) return; setStore(k); toast('Now shopping Good Life ' + byKey[k].city);
+  });
+
   /* ================= site-wide "pause motion" (the live Accessibility Statement promises moving content can be paused) */
   function setMotion(off) {
     root.classList.toggle('motion-off', off);
     if (off) root.classList.add('neon-settled'); // once paused, lit neon stays lit when motion resumes (no second flicker)
     LS.set('glc-motion', off ? 'off' : 'on');
     $$('video[data-video]').forEach(function (v) { if (off) v.pause(); });
+    $$('[data-signs]').forEach(function (w) { w.classList.toggle('is-paused', off); var b = $('[data-signs-toggle]', w); if (b) b.setAttribute('aria-pressed', String(off)); });
     $$('[data-weave]').forEach(function (w) { w.classList.toggle('is-paused', off); var b = $('[data-weave-toggle]', w); if (b) b.setAttribute('aria-pressed', String(off)); });
     $$('[data-motion-toggle]').forEach(function (b) { b.setAttribute('aria-pressed', String(off)); var l = $('[data-motion-label]', b); if (l) l.textContent = off ? 'Play motion' : 'Pause motion'; });
     try { doc.dispatchEvent(new CustomEvent('gl:motion', { detail: { off: off } })); } catch (e) {}

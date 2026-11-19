@@ -1,7 +1,7 @@
 /* visit.js — LOCATIONS + COMPANY pages (visit area). Builds on window.GL from site.js. No dependencies.
    - store pages: today's row in the hours table, today's card on the weekly deals board, "make this my store" when
      the visitor's store is a different one, and the one store-picker case site.js leaves alone (see below)
-   - locations hub: find my nearest store (browser geolocation, nothing leaves the device), pin <-> card highlight
+   - locations hub: find my nearest store (browser geolocation, nothing leaves the device) sorts the store tiles
    - contact: demo form with inline validation — sends nothing
    No JS-driven motion here (no rAF loops / auto-scrollers); the one smooth scroll respects "Pause motion". */
 (function () {
@@ -42,7 +42,11 @@
   });
   $$('[data-board-tz]').forEach(function (b) {
     var d = dowIn(b.getAttribute('data-board-tz'));
-    $$('.v-day[data-dow]', b).forEach(function (li) { li.classList.toggle('is-today', li.getAttribute('data-dow') === String(d)); });
+    var today = null;
+    $$('.v-day[data-dow]', b).forEach(function (li) { var on = li.getAttribute('data-dow') === String(d); li.classList.toggle('is-today', on); if (on) today = li; });
+    // the board is a drag rail: bring today's panel to the front of it (horizontal only, the page does not move)
+    var rail = today && today.parentElement;
+    if (rail && rail.scrollWidth > rail.clientWidth) rail.scrollLeft = Math.max(0, today.offsetLeft - rail.firstElementChild.offsetLeft);
   });
 
   /* "make this my store" */
@@ -61,25 +65,7 @@
   doc.addEventListener('gl:store', syncMyStore);
   syncMyStore();
 
-  /* pin <-> card highlight */
-  function hot(key, on) {
-    $$('.nmap__pin[data-pin="' + key + '"]').forEach(function (p) { p.classList.toggle('is-hot', on); });
-    $$('[data-pin-for="' + key + '"]').forEach(function (c) { c.classList.toggle('is-hot', on); });
-  }
-  $$('[data-pin-for]').forEach(function (c) {
-    var k = c.getAttribute('data-pin-for');
-    c.addEventListener('mouseenter', function () { hot(k, true); });
-    c.addEventListener('mouseleave', function () { hot(k, false); });
-  });
-  $$('.nmap__pin[data-pin]').forEach(function (p) {
-    var k = p.getAttribute('data-pin');
-    p.addEventListener('mouseenter', function () { hot(k, true); });
-    p.addEventListener('mouseleave', function () { hot(k, false); });
-    p.addEventListener('focus', function () { hot(k, true); });
-    p.addEventListener('blur', function () { hot(k, false); });
-  });
-
-  /* nearest store (geolocation stays in the browser) */
+  /* nearest store (geolocation stays in the browser): sorts the store tiles by straight-line distance */
   var nearBtn = $('[data-near]'), list = $('[data-near-list]'), msg = $('[data-near-msg]');
   function miles(a, b, c, d) {
     var R = 3958.8, r = Math.PI / 180;
@@ -101,9 +87,10 @@
           var t = $('[data-dist]', o.c);
           if (t) { t.hidden = false; t.textContent = (o.d < 10 ? o.d.toFixed(1) : Math.round(o.d).toLocaleString()) + ' mi away (straight line)'; }
         });
-        var first = cards[0] && $('.v-sc__city a', cards[0].c);
+        var first = cards[0] && $('.stile__city a', cards[0].c);
         say('Sorted by distance. Closest: Good Life ' + (first ? first.textContent : '') + '.');
-        list.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'start' });
+        list.scrollLeft = 0;
+        list.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'center' });
       }, function () {
         say('Location is off — pick your store from the list below.');
       }, { enableHighAccuracy: false, timeout: 9000, maximumAge: 600000 });

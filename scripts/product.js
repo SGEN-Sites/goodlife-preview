@@ -48,7 +48,7 @@
     return '<span class="bthumb' + (still ? ' bthumb--fill' : '') + (/^#f{3}(f{3})?$/i.test(bg) ? ' plate-studio' : '') + '" style="background:' + bg + '"><img src="' + esc(safeImg(GL, i.img)) + '" alt="" loading="lazy" decoding="async" width="' + size + '" height="' + size + '"></span>';
   }
   function storeBlock(st) {
-    return '<div class="sumstore"><span class="code-tag"><b>' + esc(st.code) + '</b>' + esc(st.area) + '</span><p class="sumstore__t">Good Life ' + esc(st.city) + '</p><p class="sumstore__a">' + esc(st.street + ', ' + st.city + ', ' + st.state + ' ' + st.zip) + '</p></div>';
+    return '<div class="sumstore"><p class="sumstore__t">Good Life <span>' + esc(st.city) + '</span></p><p class="sumstore__a">' + esc(st.street + ', ' + st.city + ', ' + st.state + ' ' + st.zip) + '</p></div>';
   }
   function plural(n, a, b) { return n + ' ' + (n === 1 ? a : b); }
 
@@ -89,7 +89,7 @@
         var pl = img.closest('.stage__plate'); pl.classList.add('stage__plate--fill'); pl.classList.remove('plate-studio'); pl.style.background = '#0b1210';
         pl.style.setProperty('--ar', '1'); pl.style.removeProperty('--cap');
         var stg = img.closest('.stage'); stg.classList.add('stage--still');
-        var cap = $('.stage__note', stg); if (cap) { cap.textContent = 'Category photo · product photo unavailable'; cap.hidden = false; }
+        var cap = $('.stage__note', root); if (cap) { cap.textContent = 'Category photo · product photo unavailable'; cap.hidden = false; }
       };
       if (img.complete && img.naturalWidth === 0) swap(); else img.addEventListener('error', swap);
     }
@@ -305,7 +305,7 @@
         '<span class="codone__check" aria-hidden="true">' + ICON.check + '</span>' +
         '<p class="kicker"><span class="dot" aria-hidden="true"></span>Preview demo · nothing was sent</p>' +
         '<h2 id="co-done-t">Demo order <span class="scr" data-neon>complete</span></h2>' +
-        '<p class="codone__no">Demo order no. <b>' + esc(demoNo(st)) + '</b><span class="tag tag--amber">Not a real order</span></p>' +
+        '<p class="codone__no">Demo order no. <b>' + esc(demoNo(st)) + '</b><span class="codone__warn">Not a real order</span></p>' +
         '<p class="lede">' + (first ? 'Thanks, ' + esc(first) + '. ' : '') + 'This was a design preview: nothing went to Good Life and no payment was taken. Your demo bag has been cleared.</p>' +
         '<div class="codone__sum">' + storeBlock(st) +
           '<div class="sumful"><span class="sumful__i">' + (snap.ful === 'delivery' ? ICON.truck : ICON.store) + '</span><div><p>' + esc(where) + '</p></div></div>' +

@@ -95,23 +95,27 @@
   var STRAIN = { indica: 'Indica', sativa: 'Sativa', hybrid: 'Hybrid', 'indica-dom': 'Indica-dom', 'sativa-dom': 'Sativa-dom' };
   var WEEKLY = {}; try { WEEKLY = JSON.parse((art && art.getAttribute('data-weekly')) || '{}'); } catch (e) {}
   var menuCache = {};
-  /* same markup as learn.mjs mini(): deal tag (amber) first, then Rochester's weekly-day tag (mint), at most two;
-     an unbranded item shows its category name */
-  function miniHtml(p, s, catName) {
+  var PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  /* pcard v2 markup (kit.pcard, docs/REDESIGN-V2.md), same as learn.mjs pcardV2(): one tag at most (the deal, else
+     Rochester's weekly-day tag), no tax line, a round + to add; an unbranded item shows its category name */
+  function cardHtml(p, s, catName) {
     var G = window.GL, e = G.esc;
     var url = G.u(p.url), img = G.u(p.im);
     var pot = p.thc != null ? 'THC ' + p.thc + '%' : (p.mg != null ? 'THC ' + p.mg + 'mg' : '');
-    var tags = [];
-    if (p.d && p.d.length) tags.push('<span class="tag tag--amber">' + e(p.d[0]) + '</span>');
-    else if (p.off) tags.push('<span class="tag tag--amber">' + e(p.off) + '% off</span>');
-    (p.wk || []).forEach(function (k) { var w = WEEKLY[k]; if (w && tags.length < 2 && (p.d || []).indexOf(w) < 0) tags.push('<span class="tag tag--wk">' + e(w) + '</span>'); });
+    var tag = '';
+    if (p.d && p.d.length) tag = '<span class="tag tag--amber">' + e(p.d[0]) + '</span>';
+    else if (p.off) tag = '<span class="tag tag--amber">' + e(p.off) + '% off</span>';
+    else (p.wk || []).some(function (k) { var w = WEEKLY[k]; if (w && (p.d || []).indexOf(w) < 0) { tag = '<span class="tag tag--wk">' + e(w) + '</span>'; return true; } return false; });
     var item = { id: p.i, store: s.key, name: p.n, brand: p.b, price: p.p, priceTax: p.pt, img: img, dark: !!p.dk, size: p.z || '', url: url };
-    var plate = p.bg || '#ffffff';
-    return '<article class="mini"><a class="mini__img' + (p.fl ? ' is-fill' : '') + (plate === '#ffffff' ? ' plate-studio' : '') + '" style="background:' + e(plate) + '" href="' + e(url) + '" tabindex="-1" aria-hidden="true"><img src="' + e(img) + '" alt="" width="240" height="240" loading="lazy" decoding="async"></a>' +
-      '<div class="mini__body"><p class="mini__brand">' + e(p.b || catName || '') + '</p><p class="mini__name"><a href="' + e(url) + '">' + e(p.n) + '</a></p><p class="mini__meta">' +
-      (p.c === 'accessories' || !STRAIN[p.t] ? '' : '<span class="strain strain--' + e(p.t) + '">' + STRAIN[p.t] + '</span>') + (p.z ? '<span>' + e(p.z) + '</span>' : '') + (pot ? '<b>' + e(pot) + '</b>' : '') + '</p>' +
-      (tags.length ? '<div class="mini__badges">' + tags.join('') + '</div>' : '') + '</div>' +
-      '<div class="mini__buy"><span class="price"><b>' + G.money(p.p) + '</b><small>' + G.money(p.pt) + ' with tax</small></span><button type="button" class="add-btn" data-add="' + e(JSON.stringify(item)) + '" aria-label="Add ' + e(p.n) + ' to your bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</button></div></article>';
+    var bg = p.bg || (p.dk ? '#0b1210' : '#ffffff');
+    var media = 'pcard__media' + (p.dk ? ' pcard__media--dark' : '') + (p.fl || p.dk ? ' pcard__media--fill' : '');
+    var strain = p.c === 'accessories' || !STRAIN[p.t] ? '' : '<span class="strain strain--' + e(p.t) + '">' + STRAIN[p.t] + '</span>';
+    return '<article class="pcard" data-pid="' + e(p.i) + '">' +
+      '<div class="pcard__frame"><a class="' + media + '" style="background:' + e(bg) + '" href="' + e(url) + '" tabindex="-1" aria-hidden="true"><img src="' + e(img) + '" alt="" width="320" height="320" loading="lazy" decoding="async"><span class="pcard__badges">' + tag + '</span></a>' +
+      (p.p > 0 ? '<button type="button" class="add-btn pcard__add" data-add="' + e(JSON.stringify(item)) + '" aria-label="Add ' + e(p.n) + ' to your bag">' + PLUS + '</button>' : '') + '</div>' +
+      '<div class="pcard__body"><p class="pcard__brand">' + e(p.b || catName || '') + '</p><h3 class="pcard__name"><a href="' + e(url) + '">' + e(p.n) + '</a></h3>' +
+      '<p class="pcard__meta">' + strain + (pot ? '<span>' + e(pot) + '</span>' : '') + (p.z ? '<span>' + e(p.z) + '</span>' : '') + '</p>' +
+      '<p class="price">' + (p.p > 0 ? '<b>' + G.money(p.p) + '</b>' : '<small>Price on the live menu</small>') + '</p></div></article>';
   }
   function blockOf(rail) { return rail.closest('[data-shopblk]'); }
   function setSolo(rail, on) {
@@ -121,6 +125,13 @@
     if (blk) blk.classList.toggle('is-solo', on);
     if (on) rail.setAttribute('data-n', '0');
   }
+  /* the rail fades out at its right edge while there is more to drag; the fade goes once the end is in view */
+  function edge(rail) { rail.classList.toggle('is-end', rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4); }
+  $$('.shopblk__rail').forEach(function (rail) {
+    rail.addEventListener('scroll', function () { edge(rail); }, { passive: true });
+    edge(rail);
+  });
+  window.addEventListener('resize', function () { $$('.shopblk__rail').forEach(edge); });
   function syncRails() {
     var G = window.GL; if (!G || !rails.length) return;
     var s = G.store(); if (!s) return;
@@ -141,17 +152,19 @@
       need.forEach(function (x) {
         var rail = x.rail;
         var items = x.picks.map(function (id) { return byId[id]; }).filter(Boolean);
-        items = items.length >= 4 ? items.slice(0, 4) : items.length >= 2 ? items.slice(0, 2) : [];
+        if (items.length < 2) items = [];
         rail.setAttribute('data-rail-store', key);
         if (!items.length) { setSolo(rail, true); return; }
-        rail.innerHTML = items.map(function (p) { return miniHtml(p, s, rail.getAttribute('data-rail-name')); }).join('');
+        rail.innerHTML = items.map(function (p) { return cardHtml(p, s, rail.getAttribute('data-rail-name')); }).join('');
         rail.setAttribute('data-n', String(items.length));
+        rail.scrollLeft = 0;
         setSolo(rail, false);
+        edge(rail);
         var blk = blockOf(rail), note = blk && blk.querySelector('[data-rail-note]');
         var cat = rail.getAttribute('data-rail-cat');
-        if (note) note.innerHTML = '<span class="code-tag"><b>' + G.esc(s.code) + '</b>' + G.esc(s.area) + '</span>From the ' + G.esc(s.city) + ' menu · ' + (s.counts[cat] || items.length).toLocaleString() + ' in ' + G.esc(rail.getAttribute('data-rail-name') || cat) + ' · prices before tax and with tax';
+        if (note) note.textContent = 'From the ' + s.city + ' menu · ' + (s.counts[cat] || items.length).toLocaleString() + ' in ' + String(rail.getAttribute('data-rail-name') || cat).toLowerCase() + ' · prices before tax';
       });
-    }).catch(function () { delete menuCache[key]; });
+    }).catch(function () { menuCache[key] = null; });
   }
   doc.addEventListener('gl:store', syncRails);
   syncRails();
