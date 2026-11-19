@@ -1,8 +1,8 @@
-/* visit.js — LOCATIONS + COMPANY pages (visit area). Builds on window.GL from site.js. No dependencies.
+/* visit.js: LOCATIONS + COMPANY pages (visit area). Builds on window.GL from site.js. No dependencies.
    - store pages: today's row in the hours table, today's card on the weekly deals board, "make this my store" when
      the visitor's store is a different one, and the one store-picker case site.js leaves alone (see below)
    - locations hub: find my nearest store (browser geolocation, nothing leaves the device) sorts the store tiles
-   - contact: demo form with inline validation — sends nothing
+   - contact: demo form with inline validation, sends nothing
    No JS-driven motion here (no rAF loops / auto-scrollers); the one smooth scroll respects "Pause motion". */
 (function () {
   'use strict';
@@ -92,12 +92,12 @@
         list.scrollLeft = 0;
         list.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'center' });
       }, function () {
-        say('Location is off — pick your store from the list below.');
+        say('Location is off. Pick your store from the list below.');
       }, { enableHighAccuracy: false, timeout: 9000, maximumAge: 600000 });
     });
   }
 
-  /* contact form: demo only — validates in the browser, sends nothing */
+  /* contact form: demo only (validates in the browser, sends nothing) */
   var form = $('[data-contact]');
   if (form) {
     var status = $('[data-form-status]', form);
@@ -128,7 +128,7 @@
         return;
       }
       status.className = 'v-form__status';
-      status.textContent = 'Preview: this message was not sent — please call your store.';
+      status.textContent = 'Preview: this message was not sent. Please call your store.';
     });
   }
 })();

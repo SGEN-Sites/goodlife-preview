@@ -1,4 +1,4 @@
-/* Good Life preview — MERCH SHOP area script v2 (owner: merch area). Builds on window.GL from site.js.
+/* Good Life preview: MERCH SHOP area script v2 (owner: merch area). Builds on window.GL from site.js.
    · store filter = a native <select> (no pills) + the big store counts in the "where it's stocked" band; every option shows
      ≥1 style; follows the store the shopper chose (header picker, "Pick your store", a remembered choice); keeps chapter
      counts + store lists honest; a filtered hub drops its editorial beats and any chapter left empty
@@ -102,7 +102,7 @@
     if (!sel) return;
     if (hasKey(key)) { applyFilter(key); return; }
     var total = applyFilter('all');
-    if (status) status.textContent = 'None of these are stocked at Good Life ' + cityOf(key) + ' — showing all ' + total + ' styles.';
+    if (status) status.textContent = 'None of these are stocked at Good Life ' + cityOf(key) + '. Showing all ' + total + ' styles.';
   }
   if (sel) {
     sel.addEventListener('change', function () { applyFilter(sel.value); });

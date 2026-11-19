@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   MERCH SHOP v2 (owner round 2) — Good Life's streetwear label as a lookbook, not a catalogue (owner: merch area).
+   MERCH SHOP v2 (owner round 2): Good Life's streetwear label as a lookbook, not a catalogue (owner: merch area).
    Full-bleed walls of tall photos (the lit panel widens), minimal cards (photo, name, sleek price; details on hover /
    focus / tap), text tabs + a native store select, draggable rails, a gliding shop-the-look row, neon drawings for items
    with no photo, big-type bands over full-bleed photos. No boxes, no pills, no paper tags, no cut-outs, no mono labels.
@@ -69,7 +69,7 @@
 .mrail__track { display: flex; gap: clamp(16px, 1.7vw, 26px); width: max-content; }
 .mrail .mcard { flex: 0 0 var(--cw); width: var(--cw); scroll-snap-align: start; }
 
-/* ---------- grid (category pages, "pairs with"): no lone last card — the first card goes wide ---------- */
+/* ---------- grid (category pages, "pairs with"): no lone last card; the first card goes wide ---------- */
 .mgrid { --cols: 4; --gap: clamp(14px, 1.7vw, 26px); display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(34px, 3.4vw, 52px) var(--gap); }
 .mgrid > .mcard { flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)); }
 @media (max-width: 1099px) { .mgrid { --cols: 3; } .mgrid--four { --cols: 2; } }
@@ -216,7 +216,7 @@ html.motion-off .mglide__row { overflow-x: auto; }
 /* ---------- closing band (style pages) ---------- */
 .mlabel { position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: clamp(540px, 84vh, 820px); padding-block: clamp(90px, 11vw, 150px) clamp(60px, 8vw, 110px); }
 
-/* ---------- style page: the photo, then plain typography — no panel ---------- */
+/* ---------- style page: the photo, then plain typography, no panel ---------- */
 .mstyle { position: relative; isolation: isolate; padding: clamp(14px, 2vw, 26px) 0 clamp(70px, 8vw, 120px); }
 .mstyle__bg { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
 .mstyle__bg img { position: absolute; left: -10%; top: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(70px) brightness(.4) saturate(1.3); }

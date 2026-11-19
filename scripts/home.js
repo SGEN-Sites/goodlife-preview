@@ -1,9 +1,9 @@
-/* Good Life Collective preview — HOME page behaviours (area: home), v2. Builds on window.GL from site.js (loaded first).
+/* Good Life Collective preview: HOME page behaviours (area: home), v2. Builds on window.GL from site.js (loaded first).
    · hero video: right source for the viewport (portrait file at 760px and below) + portrait poster on phones
    · stores: on phones the store rail scrolls the selected store's tile into view (the rail scrolls, the page does not);
      "My store" buttons are handled by site.js ([data-store-pick])
    · category index: hovering / focusing a word lights its photo; while nobody points at it the index walks itself
-   · weekly deals: one big day at a time — opens on today, auto-advances (progress line), tap any day to jump, swipe on
+   · weekly deals: one big day at a time, opens on today, auto-advances (progress line), tap any day to jump, swipe on
      phones, pause button; today is lit only while shopping Rochester (it is Rochester's board)
    · ON THE MENU: ARIA tabs + draggable rails; rails re-render for the selected store from data/menu-<store>.json with the
      picks home.mjs computed (#home-picks). While a store's menu loads, the previous rails are dimmed and inert, and an
@@ -209,7 +209,7 @@
     });
   });
 
-  /* client-side product cards — exactly kit.mjs pcard() v2 markup (docs/REDESIGN-V2.md) so base.css styles them identically */
+  /* client-side product cards: exactly kit.mjs pcard() v2 markup (docs/REDESIGN-V2.md) so base.css styles them identically */
   var STRAIN = { indica: 'Indica', sativa: 'Sativa', hybrid: 'Hybrid', 'indica-dom': 'Indica-dom', 'sativa-dom': 'Sativa-dom' };
   function card(p, s) {
     var url = GL.u(p.url), img = GL.u(p.im), dark = !!p.dk, fill = !!p.fl;

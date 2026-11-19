@@ -1,8 +1,8 @@
-/* Good Life Collective preview — PRODUCT area runtime (product builder). Builds on window.GL from site.js.
+/* Good Life Collective preview: PRODUCT area runtime (product builder). Builds on window.GL from site.js.
    · product page: quantity stepper, the page's store becomes the shopping store (never splitting it from the bag),
      photo fallback to the category still
    · /cart/: the full bag (qty steppers use site.js's [data-cart-page] handlers), store + fulfilment preview, undo
-   · /checkout/: DEMO — inline validation, demo confirmation, clears the bag. Nothing is sent anywhere:
+   · /checkout/: DEMO, inline validation, demo confirmation, clears the bag. Nothing is sent anywhere:
      no fetch/XHR/beacon, no form action, personal fields carry no name attribute.
    Motion: this file runs no loops or auto-scrollers; its one animated scroll obeys html.motion-off and reduced motion. */
 (function () {
@@ -107,10 +107,10 @@
     if (st.delivery) {
       var left = Math.max(0, MIN - sub), pct = Math.min(100, (sub / MIN) * 100);
       h += '<div class="sumful"><span class="sumful__i">' + ICON.truck + '</span><div><p>' +
-        (left > 0 ? '<b>Delivery:</b> ' + esc(min) + ' — add ' + GL.money(left) + ' more.' : '<b>Free delivery</b> available — $' + MIN + ' minimum met.') +
+        (left > 0 ? '<b>Delivery:</b> ' + esc(min) + '. Add ' + GL.money(left) + ' more.' : '<b>Free delivery</b> available: $' + MIN + ' minimum met.') +
         '</p><span class="dmeter" role="img" aria-label="' + esc(GL.money(sub) + ' of the $' + MIN + ' delivery minimum') + '"><i style="--v:' + pct.toFixed(1) + '%"></i></span></div></div>';
     } else {
-      h += '<div class="sumful"><span class="sumful__i">' + ICON.info + '</span><div><p>Delivery runs from Rochester and Buffalo only — ' + esc(st.city) + ' orders are in-store pickup.</p></div></div>';
+      h += '<div class="sumful"><span class="sumful__i">' + ICON.info + '</span><div><p>Delivery runs from Rochester and Buffalo only. ' + esc(st.city) + ' orders are in-store pickup.</p></div></div>';
     }
     return h;
   }
@@ -225,7 +225,7 @@
         if (sub < MIN) {
           if (radD.checked) { radD.checked = false; radP.checked = true; }
           radD.disabled = true;
-          msg.textContent = min + ' — add ' + GL.money(MIN - sub) + ' more to choose delivery.';
+          msg.textContent = min + '. Add ' + GL.money(MIN - sub) + ' more to choose delivery.';
         } else { radD.disabled = false; msg.textContent = 'Free delivery: $' + MIN + ' minimum met.'; }
       }
       addr.hidden = ful() !== 'delivery';
@@ -238,7 +238,7 @@
       var fd = $('[data-co-ful]', root); fd.textContent = ful() === 'delivery' ? 'Free delivery' : 'Pickup'; fd.classList.add('is-text');
     }
 
-    /* inline validation — messages say what to do, fields are labelled, errors are announced */
+    /* inline validation: messages say what to do, fields are labelled, errors are announced */
     var RULES = {
       'co-first': function (v) { return v.trim() ? '' : 'Enter your first name.'; },
       'co-last': function (v) { return v.trim() ? '' : 'Enter your last name.'; },

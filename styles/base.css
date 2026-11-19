@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   GOOD LIFE COLLECTIVE — preview design system ("NEON LOOKBOOK")
+   GOOD LIFE COLLECTIVE: preview design system ("NEON LOOKBOOK")
    Urban streetwear lookbook x counterculture x cinematic chiaroscuro. One light idea runs through everything:
    the store's own teal neon (the "Good Life" sign + hex ceiling lights) is the single light source in the dark.
    It ignites headings, follows the pointer, rims the cut-out models, sweeps across glass, and powers the LED
@@ -88,7 +88,7 @@ p { text-wrap: pretty; }
 /* eyebrow: mono, tracked, no dash (owner removed eyebrow dashes on an earlier preview) */
 .kicker { display: inline-flex; align-items: center; gap: .6em; font-size: .74rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--mint); }
 .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 10px var(--neon); flex: none; }
-/* the script accent word — Good Life's own "It's a Lifestyle." voice, lit like neon tubing */
+/* the script accent word: Good Life's own "It's a Lifestyle." voice, lit like neon tubing */
 .scr { font-family: var(--font-script); font-weight: 400; text-transform: none; letter-spacing: 0; color: #e4fffa; display: inline-block; transform: rotate(-4deg); line-height: 1; padding: 0 .06em .08em; text-shadow: 0 0 .04em #fff, 0 0 .18em rgba(105, 252, 237, .95), 0 0 .5em rgba(105, 252, 237, .55), 0 0 1.1em rgba(105, 252, 237, .32); }
 .scr--violet { color: #f1ebff; text-shadow: 0 0 .04em #fff, 0 0 .18em rgba(155, 123, 255, .95), 0 0 .5em rgba(155, 123, 255, .5), 0 0 1.1em rgba(155, 123, 255, .3); }
 .scr--big { font-size: 1.18em; }
@@ -385,7 +385,7 @@ h1 .scr, h2 .scr, .h1 .scr, .h2 .scr { font-size: 1.04em; margin-inline: .04em; 
 @keyframes sign-hum { 0%, 100% { opacity: 1; } 48% { opacity: .93; } 50% { opacity: .78; } 52% { opacity: .95; } }
 
 /* ---------- hex halo (the store's hexagon ceiling light, as a 3D ring) ---------- */
-/* still, like the real hexagon ceiling lights in the stores (no spin — owner asked for still objects before); the light
+/* still, like the real hexagon ceiling lights in the stores (no spin: owner asked for still objects before); the light
    breathes very gently */
 .hex { --s: 220px; position: absolute; width: var(--s); aspect-ratio: 1 / .866; pointer-events: none; transform-style: preserve-3d; transform: perspective(900px) rotateX(62deg); animation: hex-breathe 6s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(105, 252, 237, .8)) drop-shadow(0 0 30px rgba(105, 252, 237, .35)); }
 .hex svg { width: 100%; height: 100%; overflow: visible; }
@@ -435,7 +435,7 @@ h1 .scr, h2 .scr, .h1 .scr, .h2 .scr { font-size: 1.04em; margin-inline: .04em; 
 .phero .lede { max-width: 58ch; }
 .phero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
 
-/* ---------- sticky bottom bar ("GOOD BAR") — every page, shop pages included ---------- */
+/* ---------- sticky bottom bar ("GOOD BAR"): every page, shop pages included ---------- */
 .gbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 95; padding: 0 clamp(10px, 2vw, 24px) calc(12px + env(safe-area-inset-bottom, 0px)); pointer-events: none; transform: translateY(118%); opacity: 0; visibility: hidden; transition: transform .55s var(--ease-out), opacity .35s ease, visibility 0s linear .55s; }
 .gbar.is-visible { transform: none; opacity: 1; visibility: visible; transition: transform .55s var(--ease-out), opacity .35s ease, visibility 0s; }
 html:not(.js) .gbar { display: none; }
@@ -676,7 +676,7 @@ body.cart-open .toast { opacity: 0 !important; visibility: hidden !important; }
 /* type: labels read as editorial captions, script words are as big as the bold words */
 .kicker { font-family: var(--font-body); font-weight: 800; font-size: .76rem; letter-spacing: .28em; color: var(--mint); }
 .kicker .dot { display: none; }
-.kicker::before { content: ""; width: 26px; height: 2px; flex: none; background: var(--neon); box-shadow: 0 0 10px var(--neon); }
+/* kickers carry no leading dash line (owner request 2026-11-19, as on the earlier preview) */
 h1 .scr, h2 .scr, .h1 .scr, .h2 .scr { font-size: 1.38em; line-height: .86; margin-inline: .05em .02em; vertical-align: -.04em; }
 h3 .scr, .h3 .scr { font-size: 1.3em; }
 .scr { transform: rotate(-5deg); }

@@ -1,4 +1,4 @@
-/* Good Life Collective preview — core runtime (lead-owned). No dependencies.
+/* Good Life Collective preview: core runtime (lead-owned). No dependencies.
    Store context · store-aware links · header/mega/drawer · age gate (fail-closed) · store picker · demo cart + drawer ·
    sticky "Good bar" · open-now status · reveal/neon/LED/spotlight/tilt/magnetic/parallax · pausable marquees + video.
    Area scripts (shop.js, merch.js …) build on window.GL. */
@@ -27,7 +27,7 @@
   function fill(tpl, s) { return tpl.replace(/\{(\w+)\}/g, function (_, k) { return s[k] != null ? s[k] : ''; }); }
 
   /* ================= store context ================= */
-  // the store whose page this is (any /location/<slug>/… URL) — used when the visitor hasn't chosen a store yet, so a
+  // the store whose page this is (any /location/<slug>/… URL), used when the visitor hasn't chosen a store yet, so a
   // first-time visitor on the Batavia page shops Batavia, not the Rochester default
   function urlStore() { var m = location.pathname.match(/\/location\/([^/]+)\//); if (!m) return null; for (var i = 0; i < STORES.length; i++) if (STORES[i].slug === m[1]) return STORES[i].key; return null; }
   function storeKey() { var k = LS.get('glc-store'); if (byKey[k]) return k; var p = urlStore(); return p || DATA.def || 'rochester'; }

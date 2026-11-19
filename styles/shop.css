@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   SHOP (store menus, category pages, /shop/, deals, brands, brand pages, feelings) — owner round 2.
+   SHOP (store menus, category pages, /shop/, deals, brands, brand pages, feelings), owner round 2.
    Lifestyle, not technical: full-bleed imagery, big type, motion, details on demand. No boxes, no pills, no code
    badges, no hang tags, no floating cut-outs. Builds on base.css v2 (.phero, pcard v2, .chip tabs, .btn--ghost links,
    data-split / data-scrub / data-drag / data-reveal / .slide-row). Script accent sizes come from base.css only.
@@ -49,14 +49,13 @@ html.neon-settled:not(.motion-off) .shero__code.is-lit { animation: sign-hum 6s 
 /* /deals/ hero: today's deal, giant and lit warm (amber = today, as on the board) */
 .tday { display: grid; gap: 8px; margin-top: 4px; }
 .tday__k { display: flex; align-items: center; flex-wrap: wrap; gap: .3em .7em; font-weight: 800; font-size: .78rem; letter-spacing: .26em; text-transform: uppercase; color: var(--amber); }
-.tday__k::before { content: ""; width: 26px; height: 2px; background: var(--amber); box-shadow: 0 0 10px var(--amber); }
 .tday__name { font-family: var(--font-display); text-transform: uppercase; font-size: clamp(3.3rem, 9vw, 9.2rem); line-height: .84; letter-spacing: .005em; color: #fff4e2; max-width: 9.5ch; text-shadow: 0 0 .05em rgba(255, 226, 170, .9), 0 0 .2em rgba(255, 190, 92, .55), 0 0 .6em rgba(255, 190, 92, .28); }
 .js .tday__name { animation: tday-on 1.3s steps(1, end) both .35s; }
 @keyframes tday-on { 0% { opacity: .1; } 9% { opacity: 1; } 14% { opacity: .25; } 24% { opacity: 1; } 30% { opacity: .5; } 40%, 100% { opacity: 1; } }
 .tday__sub { font-weight: 750; color: #ffdca3; }
 .tday__lines { display: grid; gap: 4px; margin-top: 4px; }
 .tday__lines li { position: relative; padding-left: 30px; font-size: clamp(1.1rem, 1.75vw, 1.55rem); font-weight: 800; line-height: 1.25; color: var(--bone); }
-.tday__lines li::before { content: ""; position: absolute; left: 0; top: .62em; width: 18px; height: 2px; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.tday__lines li::before { content: ""; position: absolute; left: 12px; top: calc(.62em - 2px); width: 6px; height: 6px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 
 /* ---------- the week: one big day at a time ---------- */
 .week { position: relative; padding: clamp(64px, 8vw, 120px) 0 clamp(40px, 5vw, 72px); }
@@ -71,7 +70,6 @@ html.neon-settled:not(.motion-off) .shero__code.is-lit { animation: sign-hum 6s 
 .wday__bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, var(--ink) 0%, transparent 20%, transparent 76%, var(--ink) 100%); }
 .wday__in { position: relative; display: grid; gap: 12px; justify-items: start; }
 .wday__k { display: flex; align-items: center; gap: 0 14px; font-weight: 800; font-size: .8rem; letter-spacing: .28em; text-transform: uppercase; color: var(--mint); }
-.wday__k::before { content: ""; width: 26px; height: 2px; background: currentColor; box-shadow: 0 0 10px currentColor; }
 .wday__today { display: none; }
 .wday.is-today .wday__k { color: var(--amber); }
 .wday.is-today .wday__today { display: inline; }
@@ -82,7 +80,7 @@ html.neon-settled:not(.motion-off) .shero__code.is-lit { animation: sign-hum 6s 
 .wday__sub { font-weight: 750; font-size: 1.05rem; color: var(--fog); margin-top: -2px; }
 .wday__lines { display: grid; gap: 6px; margin-top: 4px; }
 .wday__lines li { position: relative; padding-left: 30px; font-size: clamp(1.1rem, 1.85vw, 1.65rem); font-weight: 800; line-height: 1.25; color: var(--bone); }
-.wday__lines li::before { content: ""; position: absolute; left: 0; top: .62em; width: 18px; height: 2px; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
+.wday__lines li::before { content: ""; position: absolute; left: 12px; top: calc(.62em - 2px); width: 6px; height: 6px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 .wday.is-today .wday__lines li::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 .wday__go { margin-top: 10px; }
 .js .wday.is-on .wday__name { animation: wday-rise .9s var(--ease-out) both; }
@@ -168,7 +166,7 @@ html:not(.js) .week__ui { display: none; }
 .ctabs__t { flex: none; margin-right: 18px; font-weight: 800; font-size: .74rem; letter-spacing: .24em; text-transform: uppercase; color: var(--mute); }
 .ctabs .chip { flex: none; }
 
-/* filters: no panel on desktop — groups split by hairlines (the phone drawer keeps its sheet) */
+/* filters: no panel on desktop; groups split by hairlines (the phone drawer keeps its sheet) */
 .menu__filters { position: sticky; top: calc(var(--header-h) + 14px); max-height: calc(100vh - var(--header-h) - 28px - var(--bottom-stack, 0px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(156, 240, 224, .3) transparent; padding: 0 10px 10px 0; }
 .mf__head, .mf__foot { display: none; }
 .mf__title { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: .03em; text-transform: uppercase; color: var(--bone); }
@@ -219,10 +217,10 @@ html:not(.js) .mf__wait { display: none; }
 .rng input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--neon); outline-offset: 3px; }
 .rng__v { display: flex; justify-content: space-between; font-weight: 800; font-size: .86rem; color: var(--bone); margin-top: 6px; }
 
-/* ---------- product cards (pcard v2 from base) — shop additions ---------- */
+/* ---------- product cards (pcard v2 from base): shop additions ---------- */
 .pcard__badges .tag--wk { color: var(--mint); }
 .rail .pcard.is-today .tag--wk { color: var(--amber); }
-/* the lone last card spans the row (owner rule: no lone last-row card) — shop.js markOrphan */
+/* the lone last card spans the row (owner rule: no lone last-row card), via shop.js markOrphan */
 .menu__grid > .pcard--wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: clamp(18px, 3vw, 44px); }
 .pcard--wide .pcard__frame { flex: 0 0 min(40%, 300px); }
 .pcard--wide .pcard__body { flex: 1; padding: 0; gap: 6px; }
@@ -247,7 +245,6 @@ html:not(.js) .mf__wait { display: none; }
 .rdeal--sq .rdeal__art { aspect-ratio: 1; }
 .rdeal--sq .rdeal__art img { height: 100%; object-fit: cover; }
 .rdeal__store { display: flex; align-items: center; gap: .7em; font-weight: 800; font-size: .76rem; letter-spacing: .26em; text-transform: uppercase; color: var(--mint); }
-.rdeal__store::before { content: ""; width: 22px; height: 2px; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 .rdeal__name { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.1rem, 3.6vw, 3.4rem); line-height: .92; letter-spacing: .01em; text-transform: uppercase; color: var(--bone); margin: 10px 0 10px; }
 .rdeal__text { font-size: clamp(1.08rem, 1.4vw, 1.26rem); font-weight: 700; color: var(--bone); max-width: 36ch; }
 .rdeal__fine { font-size: .86rem; color: var(--mute); margin-top: 6px; max-width: 44ch; }
@@ -255,7 +252,7 @@ html:not(.js) .mf__wait { display: none; }
 .quiet { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 26px; margin-top: clamp(48px, 6vw, 80px); padding-top: 24px; border-top: 1px solid rgba(156, 240, 224, .14); font-size: 1.06rem; color: var(--fog); }
 .quiet > span { margin-right: 4px; }
 
-/* deals: products on deal — a full-bleed drag rail of pcards (no scrollbar track) */
+/* deals: products on deal, as a full-bleed drag rail of pcards (no scrollbar track) */
 .onrail { position: relative; padding: clamp(64px, 7vw, 108px) 0 clamp(48px, 6vw, 88px); }
 .rail { overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; padding: 10px max(var(--gutter), calc((100% - var(--shell)) / 2)) 30px; scroll-padding-inline: max(var(--gutter), calc((100% - var(--shell)) / 2)); }
 .rail::-webkit-scrollbar { display: none; }
@@ -445,7 +442,7 @@ html.motion-off .wday.is-on .wday__name, html.motion-off .wday.is-on .wday__line
   .stabs { gap: 0 16px; }
   .stabs__b { font-size: 1.2rem; }
   .tday__lines li, .wday__lines li { padding-left: 24px; }
-  .tday__lines li::before, .wday__lines li::before { width: 14px; }
+  .tday__lines li::before, .wday__lines li::before { left: 8px; }
 }
 html:not(.js) .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 761px) { html:not(.js) .fgrid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

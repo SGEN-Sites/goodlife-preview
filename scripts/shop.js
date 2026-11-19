@@ -1,4 +1,4 @@
-/* Good Life Collective preview — SHOP MENUS runtime (shop-menus builder). Builds on window.GL from site.js.
+/* Good Life Collective preview: SHOP MENUS runtime (shop-menus builder). Builds on window.GL from site.js.
    · The menu engine: every product grid ([data-menu]) loads data/menu-<store>.json, then filters / sorts / searches /
      pages client-side with the URL kept in sync (history.replaceState) so deep links, reloads and Back work.
    · Page bits: /shop/ store switcher, brand-page store chips, brands A–Z filter + folding letters, feelings tiles,
@@ -20,7 +20,7 @@
   function money(n) { return n == null || isNaN(n) ? '' : '$' + Number(n).toFixed(2); }
   function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
   function lower(s) { return String(s).toLowerCase(); }
-  /* FNV-1a 32-bit — same function as shop.mjs (menu-JSON alignment check) */
+  /* FNV-1a 32-bit: same function as shop.mjs (menu-JSON alignment check) */
   function fnv(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; }
   var navType = ''; try { navType = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (e) {}
 
@@ -317,7 +317,7 @@
     }
     function renderActive() {
       var c = [];
-      function chip(g, v, label) { c.push('<button type="button" class="chip chip--x" data-rm="' + g + '" data-rv="' + esc(v) + '">' + esc(label) + XS + '<span class="sr-only"> — remove this filter</span></button>'); }
+      function chip(g, v, label) { c.push('<button type="button" class="chip chip--x" data-rm="' + g + '" data-rv="' + esc(v) + '">' + esc(label) + XS + '<span class="sr-only">, remove this filter</span></button>'); }
       if (S.q) chip('q', '', '“' + S.q + '”');
       S.cat.forEach(function (v) { chip('cat', v, CAT_NAME[v] || v); });
       if (S.deals) chip('deals', S.deals, DEAL_LABEL[S.deals]);
@@ -348,11 +348,11 @@
     function renderGrid() {
       var n = results.length;
       countEl.innerHTML = '<b>' + nf(n) + '</b> ' + (n === 1 ? 'product' : 'products');
-      applyBtn.textContent = n ? 'Show ' + plural(n, 'product') : 'No products — clear a filter';
+      applyBtn.textContent = n ? 'Show ' + plural(n, 'product') : 'No products. Clear a filter';
       emptyEl.hidden = n > 0;
       grid.hidden = n === 0;
       if (!n) {
-        emptyT.textContent = S.q ? 'Nothing on this menu matches “' + S.q + '” with those filters.' : 'Try fewer filters — or clear them all.';
+        emptyT.textContent = S.q ? 'Nothing on this menu matches “' + S.q + '” with those filters.' : 'Try fewer filters, or clear them all.';
         moreWrap.hidden = true; return;
       }
       var slice = results.slice(0, Math.min(shown, n));
@@ -374,7 +374,7 @@
       });
     }
     /* owner rule "no lone last-row card": when every result is on screen and the last row holds one card, that card
-       spans the row as a wide card (re-checked on resize — the column count changes with the width) */
+       spans the row as a wide card (re-checked on resize: the column count changes with the width) */
     function markOrphan() {
       var w = $('.pcard--wide', grid); if (w) w.classList.remove('pcard--wide');
       if (grid.hidden || !results.length) return;
@@ -549,7 +549,7 @@
         if (cityEl) cityEl.textContent = 'Good Life ' + city;
         if (!note) return;
         if (k === mine.key) { note.hidden = true; note.innerHTML = ''; return; }
-        var lead = has.indexOf(mine.key) >= 0 ? 'Showing Good Life ' + city + ' — you’re shopping ' + mine.city + '.' : 'Not on the ' + mine.city + ' menu right now — showing Good Life ' + city + '.';
+        var lead = has.indexOf(mine.key) >= 0 ? 'Showing Good Life ' + city + '. You’re shopping ' + mine.city + '.' : 'Not on the ' + mine.city + ' menu right now. Showing Good Life ' + city + '.';
         note.innerHTML = esc(lead) + ' <button type="button" class="brhero__switch" data-brand-switch="' + esc(k) + '">Shop Good Life ' + esc(city) + ' instead</button>';
         note.hidden = false;
       };

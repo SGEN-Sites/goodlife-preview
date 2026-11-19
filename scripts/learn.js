@@ -1,4 +1,4 @@
-/* Good Life preview — LEARN + BLOG behaviour (owner: learn builder). Builds on site.js (window.GL); no dependencies.
+/* Good Life preview: LEARN + BLOG behaviour (owner: learn builder). Builds on site.js (window.GL); no dependencies.
    - neon reading-progress line pinned under the sticky header
    - table of contents scroll-spy (desktop sticky list + phone/tablet <details>). A phone/tablet TOC tap folds the list
      FIRST, then scrolls the section to just under the header (jumping first and folding after left the heading hidden).

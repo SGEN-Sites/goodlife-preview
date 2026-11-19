@@ -1,5 +1,5 @@
 /* =====================================================================================================
-   HOME ( / ) — area stylesheet (home.mjs), v2 (owner round 2, 2026-11-19). Builds on base.css + its V2 layer.
+   HOME ( / ): area stylesheet (home.mjs), v2 (owner round 2, 2026-11-19). Builds on base.css + its V2 layer.
    Lifestyle, not technical: no bordered/filled boxes around words, no pills, no mono labels, no cut-outs.
    Imagery first (full-bleed video hero, photo bands, bleeding photos), motion everywhere, all of it pausable and
    static under prefers-reduced-motion / the site's "Pause motion" (html.motion-off). Every class is home-scoped.
@@ -276,7 +276,7 @@ html.motion-off .home-deals__shot img { transition: none; transform: none; }
   .home-feat--1 .home-feat__cap { left: var(--gutter); }
 }
 
-/* ======================================== 10. DELIVERY / PICKUP + REWARDS / APP — photo bands ======================================== */
+/* ======================================== 10. DELIVERY / PICKUP + REWARDS / APP: photo bands ======================================== */
 .home-promo { display: grid; margin-top: clamp(36px, 5vw, 80px); }
 .home-band { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; min-height: clamp(500px, 50vw, 700px); padding-block: clamp(80px, 9vw, 120px); }
 .home-band__ph { position: absolute; inset: 0; z-index: -2; margin: 0; }
